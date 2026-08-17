@@ -1,4 +1,5 @@
-// Shared between content.js, background.js, and popup.js
+// Shared between content.js, background.js, popup.js, and options.js (plain script, no modules — kept
+// compatible with MV3 service worker + content script + webpage contexts).
 
 const REPAINT_DEFAULT_PROFILES = {
   "news.ycombinator.com": {
@@ -97,6 +98,53 @@ function repaintCleanDomainKey(domain) {
   return clean;
 }
 
+function repaintFindMatchingProfile(hostname, siteProfiles) {
+  if (!hostname || !siteProfiles || typeof siteProfiles !== "object") {
+    return null;
+  }
+
+  const host = repaintNormalizeHostname(hostname);
+  if (host === "unknown" || host === "browser-internal") {
+    return null;
+  }
+
+  // 1. Direct or normalized key match (exact)
+  for (const [key, profile] of Object.entries(siteProfiles)) {
+    if (!key || !profile) continue;
+    const cleanKey = repaintCleanDomainKey(key);
+    if (host === cleanKey) {
+      return {
+        key,
+        profile,
+        isExact: true
+      };
+    }
+  }
+
+  // 2. Suffix / Subdomain match (e.g. host "m.youtube.com" matches key "youtube.com")
+  let bestMatch = null;
+  let maxKeyLength = 0;
+
+  for (const [key, profile] of Object.entries(siteProfiles)) {
+    if (!key || !profile) continue;
+    const cleanKey = repaintCleanDomainKey(key);
+    if (!cleanKey) continue;
+
+    if (host.endsWith("." + cleanKey)) {
+      if (cleanKey.length > maxKeyLength) {
+        maxKeyLength = cleanKey.length;
+        bestMatch = {
+          key,
+          profile,
+          isExact: false
+        };
+      }
+    }
+  }
+
+  return bestMatch;
+}
+
 function repaintGetSuggestedProfileName(hostname) {
   const host = repaintCleanDomainKey(hostname);
   if (!host || host === "local-file") return "Local Page";
@@ -133,3 +181,31 @@ function repaintGetSuggestedProfileName(hostname) {
 
   return namePart.charAt(0).toUpperCase() + namePart.slice(1);
 }
+
+async function repaintFetchCssFromUrl(url) {
+  if (!url || !/^https?:\/\//i.test(url)) {
+    throw new Error("Invalid URL. Must begin with http:// or https://");
+  }
+  const response = await fetch(url, { cache: "no-cache" });
+  if (!response.ok) {
+    throw new Error(`HTTP Error ${response.status} (${response.statusText})`);
+  }
+  const text = await response.text();
+  if (!text || !text.trim()) {
+    throw new Error("The fetched stylesheet was empty.");
+  }
+  return text;
+}
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    REPAINT_DEFAULT_PROFILES,
+    repaintNormalizeHostname,
+    repaintCleanDomainKey,
+    repaintFindMatchingProfile,
+    repaintGetSuggestedProfileName,
+    repaintFetchCssFromUrl
+  };
+}
+
+
