@@ -97,4 +97,32 @@
     ensureStyleEl();
     loadAndApply();
   }, { once: true });
+
+  // Messaging
+  if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+      if (msg && msg.type === "REPAINT_PROFILE_APPLY") {
+        var masterOn = msg.masterEnabled !== undefined ? msg.masterEnabled : true;
+        var profileOn = !!msg.enabled;
+        var shouldApply = masterOn && profileOn;
+
+        applyProfileCSS(msg.css || "", shouldApply);
+        sendResponse({ ok: true, applied: shouldApply, host: getHostname() });
+        return false;
+      }
+
+      if (msg && msg.type === "REPAINT_PING") {
+        sendResponse({ ok: true, pong: true, host: getHostname() });
+        return false;
+      }
+    });
+  }
+
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area === "local" && (changes.siteProfiles || changes.masterEnabled)) {
+        loadAndApply();
+      }
+    });
+  }
 })();
