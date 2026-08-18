@@ -1,5 +1,28 @@
 importScripts("themes.js");
 
+async function injectContentScriptsIntoExistingTabs() {
+  if (!chrome.scripting || !chrome.tabs) return;
+  try {
+    const tabs = await chrome.tabs.query({});
+    for (const tab of tabs) {
+      if (!tab.id || !tab.url) continue;
+      if (/^(https?|file):\/\//i.test(tab.url)) {
+        try {
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ["themes.js", "content.js"]
+          });
+          console.log("[Repaint background.js] Injected content scripts into tab:", tab.id, tab.url);
+        } catch (err) {
+          // May fail on restricted chrome webstore pages; ignore
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[Repaint background.js] Error during batch script injection:", err);
+  }
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log("[Repaint background.js] Extension installed/updated.");
   chrome.storage.local.get(["siteProfiles", "masterEnabled"], (store) => {
@@ -16,6 +39,8 @@ chrome.runtime.onInstalled.addListener(() => {
       });
     }
   });
+
+  injectContentScriptsIntoExistingTabs();
 });
 
 function hostnameFromUrl(url) {
@@ -65,3 +90,5 @@ chrome.storage.onChanged.addListener((changes, area) => {
     });
   }
 });
+
+
