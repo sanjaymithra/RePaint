@@ -1,10 +1,23 @@
 (function () {
+  let activeTabId = null;
   let activeHostname = "";
   let siteProfiles = {};
   let masterEnabled = true;
+  let uploadedCssText = "";
 
   const masterKillSwitch = document.getElementById("masterKillSwitch");
+  const listView = document.getElementById("listView");
   const profilesList = document.getElementById("profilesList");
+  const emptyState = document.getElementById("emptyState");
+  const btnOpenAddModal = document.getElementById("btnOpenAddModal");
+
+  const addModalView = document.getElementById("addModalView");
+  const btnCancelModal = document.getElementById("btnCancelModal");
+  const btnCancelAdd = document.getElementById("btnCancelAdd");
+  const btnSaveAdd = document.getElementById("btnSaveAdd");
+  const inputProfileName = document.getElementById("inputProfileName");
+  const cssFileInput = document.getElementById("cssFileInput");
+  const fileChosenLabel = document.getElementById("fileChosenLabel");
 
   function escapeHTML(str) {
     return String(str || "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
@@ -13,6 +26,13 @@
   function renderProfiles() {
     profilesList.innerHTML = "";
     const keys = Object.keys(siteProfiles);
+
+    if (keys.length === 0) {
+      emptyState.hidden = false;
+      return;
+    }
+    emptyState.hidden = true;
+
     const activeMatch = repaintFindMatchingProfile(activeHostname, siteProfiles);
 
     keys.forEach((key) => {
@@ -40,6 +60,7 @@
               </span>
             </span>
           </label>
+          <button class="profile-del-btn" title="Delete Profile">✕</button>
         </div>
       `;
 
@@ -47,17 +68,39 @@
       toggleInput.addEventListener("change", () => {
         p.enabled = toggleInput.checked;
         p.updatedAt = Date.now();
-        chrome.storage.local.set({ siteProfiles });
+        chrome.storage.local.set({ siteProfiles, masterEnabled: masterKillSwitch.checked });
+      });
+
+      const delBtn = row.querySelector(".profile-del-btn");
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (confirm(`Delete profile "${p.name || key}"?`)) {
+          delete siteProfiles[key];
+          chrome.storage.local.set({ siteProfiles, masterEnabled: masterKillSwitch.checked });
+          renderProfiles();
+        }
       });
 
       profilesList.appendChild(row);
     });
   }
 
-  masterKillSwitch.addEventListener("change", () => {
-    masterEnabled = masterKillSwitch.checked;
-    chrome.storage.local.set({ masterEnabled });
-  });
+  function openAddModal() {
+    uploadedCssText = "";
+    cssFileInput.value = "";
+    fileChosenLabel.textContent = "Choose a .css file...";
+    listView.hidden = true;
+    addModalView.hidden = false;
+  }
+
+  function closeAddModal() {
+    addModalView.hidden = true;
+    listView.hidden = false;
+  }
+
+  btnOpenAddModal.addEventListener("click", openAddModal);
+  btnCancelModal.addEventListener("click", closeAddModal);
+  btnCancelAdd.addEventListener("click", closeAddModal);
 
   chrome.storage.local.get(["siteProfiles", "masterEnabled"], (store) => {
     masterEnabled = store.masterEnabled !== undefined ? store.masterEnabled : true;
