@@ -19,6 +19,15 @@
   const cssFileInput = document.getElementById("cssFileInput");
   const fileChosenLabel = document.getElementById("fileChosenLabel");
 
+  async function sendMessageToTab(tabId, message) {
+    if (!tabId) return null;
+    try {
+      return await chrome.tabs.sendMessage(tabId, message);
+    } catch (err) {
+      return null;
+    }
+  }
+
   function escapeHTML(str) {
     return String(str || "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   }
@@ -89,8 +98,11 @@
     uploadedCssText = "";
     cssFileInput.value = "";
     fileChosenLabel.textContent = "Choose a .css file...";
+    const suggestedName = activeHostname ? repaintGetSuggestedProfileName(activeHostname) : "";
+    inputProfileName.value = suggestedName;
     listView.hidden = true;
     addModalView.hidden = false;
+    inputProfileName.focus();
   }
 
   function closeAddModal() {
@@ -98,9 +110,43 @@
     listView.hidden = false;
   }
 
+  function handleFileSelection(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    fileChosenLabel.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = (readEvent) => {
+      uploadedCssText = readEvent.target.result || "";
+    };
+    reader.readAsText(file);
+  }
+
+  async function handleSaveNewProfile() {
+    const name = inputProfileName.value.trim();
+    if (!name || !uploadedCssText) return;
+
+    let targetDomain = repaintCleanDomainKey(activeHostname);
+    if (!targetDomain) {
+      targetDomain = name.toLowerCase().replace(/[^a-z0-9.-]/g, "-") + ".com";
+    }
+
+    siteProfiles[targetDomain] = {
+      name,
+      css: uploadedCssText,
+      enabled: true,
+      updatedAt: Date.now()
+    };
+
+    chrome.storage.local.set({ siteProfiles, masterEnabled: masterKillSwitch.checked });
+    closeAddModal();
+    renderProfiles();
+  }
+
   btnOpenAddModal.addEventListener("click", openAddModal);
   btnCancelModal.addEventListener("click", closeAddModal);
   btnCancelAdd.addEventListener("click", closeAddModal);
+  btnSaveAdd.addEventListener("click", handleSaveNewProfile);
+  cssFileInput.addEventListener("change", handleFileSelection);
 
   chrome.storage.local.get(["siteProfiles", "masterEnabled"], (store) => {
     masterEnabled = store.masterEnabled !== undefined ? store.masterEnabled : true;
