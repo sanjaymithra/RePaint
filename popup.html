@@ -37,7 +37,49 @@
 
     <main class="list-view" id="listView">
       <div class="profiles-list" id="profilesList"></div>
+
+      <div class="empty-state" id="emptyState" hidden>
+        <span class="empty-icon">⚡</span>
+        <p class="empty-text">No profiles yet.<br/>Click <strong>+</strong> below to add one for this site.</p>
+      </div>
+
+      <footer class="list-footer">
+        <button class="add-btn" id="btnOpenAddModal" type="button" title="Add profile for current site">
+          <span class="add-plus">+</span>
+          <span class="add-label">Add Profile</span>
+        </button>
+      </footer>
     </main>
+
+    <section class="modal-view" id="addModalView" hidden>
+      <div class="modal-header">
+        <span class="modal-badge">NEW PROFILE</span>
+        <button class="modal-close-btn" id="btnCancelModal" type="button" title="Cancel">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="inputProfileName">Name</label>
+          <input type="text" id="inputProfileName" placeholder="e.g. YouTube" autocomplete="off" />
+        </div>
+
+        <div class="form-group">
+          <label>Upload CSS File</label>
+          <div class="file-upload-box" id="fileUploadBox">
+            <input type="file" id="cssFileInput" accept=".css,text/css" />
+            <div class="upload-inner">
+              <span class="upload-icon">📄</span>
+              <span class="upload-label" id="fileChosenLabel">Choose a .css file...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="action-btn secondary" id="btnCancelAdd" type="button">Cancel</button>
+          <button class="action-btn primary" id="btnSaveAdd" type="button">Save Profile</button>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script src="themes.js"></script>
