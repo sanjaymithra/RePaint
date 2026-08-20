@@ -163,4 +163,63 @@
   } else {
     startObserver();
   }
+
+  // 6. Fallback periodic check — some SPAs aggressively reconstruct <head>
+  //    Check every 3 seconds for the first 30 seconds after load
+  var _recheckCount = 0;
+  var _recheckInterval = setInterval(function () {
+    _recheckCount++;
+    var el = document.getElementById(STYLE_ID);
+    if (!el || !el.isConnected) {
+      console.log("[Repaint content.js] Periodic re-check: style element missing; re-injecting.");
+      loadAndApply();
+    }
+    if (_recheckCount >= 10) {
+      clearInterval(_recheckInterval);
+    }
+  }, 3000);
+
+  // --- MESSAGING ---
+
+  // Live messages from popup (instant preview, no reload needed)
+  if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+      console.log("[Repaint content.js] Message received:", msg);
+
+      if (msg && msg.type === "REPAINT_PROFILE_APPLY") {
+        var masterOn = msg.masterEnabled !== undefined ? msg.masterEnabled : true;
+        var profileOn = !!msg.enabled;
+        var shouldApply = masterOn && profileOn;
+
+        applyProfileCSS(msg.css || "", shouldApply);
+        sendResponse({
+          ok: true,
+          applied: shouldApply,
+          host: getHostname()
+        });
+        return false;
+      }
+
+      if (msg && msg.type === "REPAINT_PING") {
+        sendResponse({ ok: true, pong: true, host: getHostname() });
+        return false;
+      }
+
+      if (msg && msg.type === "REPAINT_RELOAD_PROFILE") {
+        loadAndApply();
+        sendResponse({ ok: true, reloaded: true, host: getHostname() });
+        return false;
+      }
+    });
+  }
+
+  // React if profiles or master toggle changes in storage
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener(function (changes, area) {
+      if (area === "local" && (changes.siteProfiles || changes.masterEnabled)) {
+        console.log("[Repaint content.js] Storage changed; re-evaluating.");
+        loadAndApply();
+      }
+    });
+  }
 })();
