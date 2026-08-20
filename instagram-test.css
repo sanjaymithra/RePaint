@@ -1,0 +1,17 @@
+/* DIAGNOSTIC TEST: Does ANY CSS work on Instagram at all?
+   If you see red backgrounds and lime text, injection works.
+   If nothing changes, there's a deeper blocking issue. */
+
+html, body {
+  background: red !important;
+}
+
+* {
+  color: lime !important;
+  background-color: red !important;
+}
+
+div, span, a, p, h1, h2, h3, section, article, main, nav, header, aside, footer {
+  color: lime !important;
+  background-color: red !important;
+}
