@@ -11,6 +11,7 @@
   <div class="scanlines"></div>
 
   <div class="app-container">
+    <!-- Header with Master Kill-Switch -->
     <header class="cyber-header">
       <div class="brand-group">
         <div class="synth-logo">
@@ -35,8 +36,11 @@
       </div>
     </header>
 
+    <!-- Main View: Flat Profiles List -->
     <main class="list-view" id="listView">
-      <div class="profiles-list" id="profilesList"></div>
+      <div class="profiles-list" id="profilesList">
+        <!-- Dynamically generated rows -->
+      </div>
 
       <div class="empty-state" id="emptyState" hidden>
         <span class="empty-icon">⚡</span>
@@ -51,6 +55,7 @@
       </footer>
     </main>
 
+    <!-- Inline Add Profile Modal / Form View -->
     <section class="modal-view" id="addModalView" hidden>
       <div class="modal-header">
         <span class="modal-badge">NEW PROFILE</span>
@@ -80,9 +85,19 @@
         </div>
       </div>
     </section>
+
+    <!-- Creator Signature / Watermark -->
+    <footer class="app-credit-footer">
+      <span class="credit-text">Built by <span class="credit-author">Sanjay</span></span>
+      <span class="credit-sep">·</span>
+      <a class="credit-link" href="https://github.com/sanjaymithra" target="_blank" rel="noopener noreferrer" title="Sanjay on GitHub">GitHub</a>
+      <span class="credit-sep">·</span>
+      <a class="credit-link" href="https://www.linkedin.com/in/sanjay-mithra/" target="_blank" rel="noopener noreferrer" title="Sanjay on LinkedIn">LinkedIn</a>
+    </footer>
   </div>
 
   <script src="themes.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
+

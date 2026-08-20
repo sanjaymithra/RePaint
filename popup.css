@@ -503,3 +503,51 @@ body.crt-screen {
   color: #080214;
   box-shadow: 0 0 12px var(--neon-pink);
 }
+
+/* ==========================================================================
+   Creator Signature / Watermark (Extension UI Only)
+   ========================================================================== */
+.app-credit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(0, 240, 255, 0.12);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #7d6e99;
+}
+
+.credit-text {
+  color: #8c7ba8;
+}
+
+.credit-author {
+  color: #c9bfe3;
+  font-weight: 700;
+}
+
+.credit-sep {
+  color: rgba(0, 240, 255, 0.3);
+}
+
+.credit-link {
+  color: var(--neon-cyan);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.credit-link:hover {
+  color: #ffffff;
+  text-shadow: 0 0 8px var(--neon-cyan), 0 0 14px rgba(0, 240, 255, 0.8);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+
+
