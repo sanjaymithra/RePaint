@@ -22,7 +22,6 @@
 <div align="center">
   <img src="assets/screenshots/repaint-profiles-1.png" alt="RePaint Extension Interface" width="340" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="assets/screenshots/repaint-profiles-2.png" alt="RePaint Active Profiles" width="340" />
 </div>
 
 <br/>
